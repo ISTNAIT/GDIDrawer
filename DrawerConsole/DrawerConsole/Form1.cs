@@ -12,9 +12,15 @@ namespace DrawerConsole
 {
     public partial class Form1 : Form
     {
+        // seems to be crashing the drawer, perhaps the drawer should be run as debug for the next integration
+        // and try/caught to death to determine where the exception is being thrown
+        // suspect not seeing it now due to release build
+
         CDrawer _dr = new CDrawer(80 * 11, 24 * 15);
         Random _rnd = new Random();
         ConsoleManager con = null;
+
+        private int _Count = 0;
 
         public Form1()
         {
@@ -24,26 +30,41 @@ namespace DrawerConsole
         private void Form1_Load(object sender, EventArgs e)
         {
             con = new ConsoleManager(_dr);
+
+            for (int y = 0; y < 24; ++y)
+                for (int x = 0; x < 80; ++x)
+                    con.WriteChar(x, y, '0');
         }
 
         private void UI_TIM_Render_Tick(object sender, EventArgs e)
-        {
-            con.ForeCol = GDIDrawer.RandColor.GetColor();
+        {            
+            //con.ForeCol = GDIDrawer.RandColor.GetColor();
             //con.BackCol = GDIDrawer.RandColor.GetColor();
-            con.WriteChar(_rnd.Next(0, 80), _rnd.Next(0, 24), (char)_rnd.Next(0, 128));
+            //con.WriteChar(_rnd.Next(0, 80), _rnd.Next(0, 24), (char)_rnd.Next(0, 128));
+            con.SetPos(5, 10);
+            con.WriteLine((++_Count).ToString("d5"));
+            con.Render();
         }
     }
 
     public class ConsoleManager
     {
+        private CDrawer _dr; 
         private SConChar[,] _BuffWorking = new SConChar[24, 80];
         private SConChar[,] _BuffPresented = new SConChar[24, 80];
 
-        public int PosX { get; set; }
-        public int PosY { get; set; }
+        private int PosX { get; set; }
+        private int PosY { get; set; }
         public Color ForeCol { get; set; }
         public Color BackCol { get; set; }
-        public CDrawer _dr { get; private set; }
+        
+        public void SetPos (int xPos, int yPos)
+        {
+            if (xPos >= 0 && xPos < 80)
+                PosX = xPos;
+            if (yPos >= 0 && yPos < 24)
+                PosY = yPos;
+        }
 
         public ConsoleManager(CDrawer target)
         {
@@ -62,8 +83,6 @@ namespace DrawerConsole
                 return;
 
             _BuffWorking[y, x] = new SConChar(c, ForeCol, BackCol);
-
-            Render();
         }
 
         public void WriteLine(string str)
@@ -74,7 +93,6 @@ namespace DrawerConsole
                 IncCursor();
             }
             CReturn();
-            Render();            
         }
 
         private void CReturn()
