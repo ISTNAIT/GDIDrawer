@@ -70,6 +70,7 @@
     <Compile Include="DrawerWnd.Designer.cs">
       <DependentUpon>DrawerWnd.cs</DependentUpon>
     </Compile>
+    <Compile Include="log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

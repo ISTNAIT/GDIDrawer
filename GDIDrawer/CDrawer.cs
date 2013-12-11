@@ -69,6 +69,11 @@ namespace GDIDrawer
     /// </summary>
     public class CDrawer
     {
+        private static Random _rnd = new Random();
+
+        // log file for troubleshooting/logging events
+        internal StatusLog _log = new StatusLog(@"drawer_log" + _rnd.Next (10000, 100000).ToString() + ".txt");        
+
         /// <summary>
         /// Width of the drawer window
         /// </summary>
@@ -94,8 +99,9 @@ namespace GDIDrawer
                         Pos = (Point)m_wDrawer.Invoke(new DrawerWnd.delGetPos(m_wDrawer.GetDTPos));
                     }
                 }
-                catch (Exception)
+                catch (Exception err)
                 {
+                    _log.WriteLine("CDrawer::Position (get): " + err.Message);
                 }
 
                 return Pos;
@@ -109,8 +115,9 @@ namespace GDIDrawer
                         m_wDrawer.Invoke(new DrawerWnd.delSetPos(m_wDrawer.SetDTPos), value);
                     }
                 }
-                catch (Exception)
+                catch (Exception err)
                 {
+                    _log.WriteLine("CDrawer::Position (set): " + err.Message);
                 }
             }
         }
@@ -130,8 +137,9 @@ namespace GDIDrawer
                         sz = (Size)m_wDrawer.Invoke(new DrawerWnd.delGetSize(m_wDrawer.GetWndSize));
                     }
                 }
-                catch (Exception)
+                catch (Exception err)
                 {
+                    _log.WriteLine("CDrawer::DrawerWindowSize : " + err.Message);
                 }
 
                 return sz;
@@ -139,7 +147,7 @@ namespace GDIDrawer
         }
 
         // the window (application) that does the actual drawing
-        private DrawerWnd m_wDrawer;
+        private DrawerWnd m_wDrawer = null;
 
         // the thread that the drawing window runs in
         private Thread m_tDrawerThread;
@@ -311,7 +319,10 @@ namespace GDIDrawer
         /// </summary>
         public int Scale
         {
-            get { return m_iScale; }
+            get
+            {
+                return m_iScale;
+            }
             set
             {
                 if (value < 1 || value > m_ciWidth)
@@ -333,7 +344,10 @@ namespace GDIDrawer
         /// </summary>
         public int ScaledWidth
         {
-            get { return m_ciWidth / m_iScale; }
+            get
+            {
+                return m_ciWidth / m_iScale;
+            }
         }
 
         /// <summary>
@@ -341,7 +355,10 @@ namespace GDIDrawer
         /// </summary>
         public int ScaledHeight
         {
-            get { return m_ciHeight / m_iScale; }
+            get
+            {
+                return m_ciHeight / m_iScale;
+            }
         }
         // Continuous Update, render flag
         /// <summary>
@@ -359,7 +376,10 @@ namespace GDIDrawer
         /// </summary>
         public bool ContinuousUpdate
         {
-            get { return m_bContinuousUpdate; }
+            get
+            {
+                return m_bContinuousUpdate;
+            }
             set
             {
                 if (m_wDrawer != null && m_tDrawerThread != null)
@@ -411,9 +431,11 @@ namespace GDIDrawer
             // can't assume instant (or blocking) creation...
             //System.Threading.Thread.Sleep(250);
             while (m_wDrawer == null || !m_wDrawer.m_bIsInitialized) // Wait for first Paint to complete
-                System.Threading.Thread.Sleep(0); // Allow for Render() to complete
+                System.Threading.Thread.Sleep(1); // Allow for Render() to complete
 
-            System.Threading.Thread.Sleep(100); // Allow for potential 2nd Paint event to complete
+            // not sure about this - don't like it
+            // Allow for potential 2nd Paint event to complete
+            System.Threading.Thread.Sleep(100); 
             ContinuousUpdate = bContinuousUpdate;
         }
 
@@ -501,8 +523,9 @@ namespace GDIDrawer
                 if (MouseMove != null)
                     MouseMove(pt, this);
             }
-            catch
+            catch (Exception err)
             {
+                _log.WriteLine("CDrawer::CBMouseMove : " + err.Message);
             }
 
             // scaled stuff
@@ -518,8 +541,9 @@ namespace GDIDrawer
                     if (MouseMoveScaled != null)
                         MouseMoveScaled(pTemp, this);
                 }
-                catch
+                catch (Exception err)
                 {
+                    _log.WriteLine("CDrawer::CBMouseMove : " + err.Message);
                 }
             }
         }
@@ -538,8 +562,9 @@ namespace GDIDrawer
                 if (MouseLeftClick != null)
                     MouseLeftClick(pt, this);
             }
-            catch
+            catch (Exception err)
             {
+                _log.WriteLine("CDrawer::CBMouseLeftClick : " + err.Message);
             }
 
             Point pTemp = new Point(pt.X / m_iScale, pt.Y / m_iScale);
@@ -553,8 +578,9 @@ namespace GDIDrawer
                     if (MouseLeftClickScaled != null)
                         MouseLeftClickScaled(pTemp, this);
                 }
-                catch
+                catch (Exception err)
                 {
+                    _log.WriteLine("CDrawer::CBMouseLeftClick : " + err.Message);
                 }
             }
         }
@@ -573,8 +599,9 @@ namespace GDIDrawer
                 if (MouseRightClick != null)
                     MouseRightClick(pt, this);
             }
-            catch
+            catch (Exception err)
             {
+                _log.WriteLine("CDrawer::CBMouseRightClick : " + err.Message);
             }
 
             Point pTemp = new Point(pt.X / m_iScale, pt.Y / m_iScale);
@@ -588,8 +615,9 @@ namespace GDIDrawer
                     if (MouseRightClickScaled != null)
                         MouseRightClickScaled(pTemp, this);
                 }
-                catch
+                catch (Exception err)
                 {
+                    _log.WriteLine("CDrawer::CBMouseRightClick : " + err.Message);
                 }
             }
         }

@@ -34,9 +34,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GDIDrawer">
-      <HintPath>..\GDIDrawer.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -82,6 +79,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\CharMap.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GDIDrawer\GDIDrawer.csproj">
+      <Project>{0C1A2DA6-760D-4E53-9EDC-5670F35BBBD4}</Project>
+      <Name>GDIDrawer</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
