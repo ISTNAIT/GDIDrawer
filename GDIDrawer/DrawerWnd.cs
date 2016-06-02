@@ -261,6 +261,8 @@ namespace GDIDrawer
             // check to ensure that there is actually a callback registered
             if (m_delRender != null)
             {
+                int iNumRendered = 0;
+
                 // reset and start the stopwatch
                 m_StopWatch.Reset();
                 m_StopWatch.Start();
@@ -280,7 +282,14 @@ namespace GDIDrawer
                 }
 
                 // invoke controller class rendering...
-                int iNumRendered = m_delRender(m_bg.Graphics);
+                try
+                {
+                    iNumRendered = m_delRender(m_bg.Graphics);
+                }
+                catch (Exception err)
+                {
+                    _log.WriteLine("DrawerWnd::Render (main) : " + err.Message);
+                }
 
                 // flip bb to fb
                 try
@@ -334,7 +343,16 @@ namespace GDIDrawer
         {
             // if delegate is registered, fire off coords
             if (m_delMouseMove != null && e.X >= 0 && e.X < m_ciWidth && e.Y > 0 && e.Y < m_ciHeight)
-                m_delMouseMove(e.Location);
+            {
+                try
+                {
+                    m_delMouseMove(e.Location);
+                }
+                catch (Exception err)
+                {
+                    _log.WriteLine("Error in MouseMove event - " + err.Message);
+                }
+            }
         }
 
         private void DrawerWnd_MouseDown(object sender, MouseEventArgs e)
@@ -342,12 +360,30 @@ namespace GDIDrawer
             if (e.Button == MouseButtons.Left)
             {
                 if (m_delMouseLeftClick != null && e.X >= 0 && e.X < m_ciWidth && e.Y > 0 && e.Y < m_ciHeight)
-                    m_delMouseLeftClick(e.Location);
+                {
+                    try
+                    {
+                        m_delMouseLeftClick(e.Location);
+                    }
+                    catch (Exception err)
+                    {
+                        _log.WriteLine("Error in MouseDown event - " + err.Message);
+                    }
+                }                
             }
             else if (e.Button == MouseButtons.Right)
             {
                 if (m_delMouseRightClick != null && e.X >= 0 && e.X < m_ciWidth && e.Y > 0 && e.Y < m_ciHeight)
-                    m_delMouseRightClick(e.Location);
+                {
+                    try
+                    {
+                        m_delMouseRightClick(e.Location);
+                    }
+                    catch (Exception err)
+                    {
+                        _log.WriteLine("Error in MouseDown event - " + err.Message);
+                    }
+                }                
             }
         }
 

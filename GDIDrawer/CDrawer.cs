@@ -630,12 +630,19 @@ namespace GDIDrawer
             int iNum = 0;
 
             // walk through the linked list of renderables and instruct each to render
-            lock (m_llShapes)
+            try
             {
-                foreach (IRender renderme in m_llShapes)
-                    renderme.Render(gr, m_iScale);
+                lock (m_llShapes)
+                {
+                    foreach (IRender renderme in m_llShapes)
+                        renderme.Render(gr, m_iScale);
 
-                iNum = m_llShapes.Count;
+                    iNum = m_llShapes.Count;
+                }
+            }
+            catch (Exception err)
+            {
+                System.Diagnostics.Trace.WriteLine("Error in render... " + err.Message);
             }
 
             return iNum;
