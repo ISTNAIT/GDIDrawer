@@ -47,8 +47,10 @@ namespace GDIDrawer
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "GDI+ Drawer V1.0";
             this.Load += new System.EventHandler(this.DrawerWnd_Load);
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.DrawerWnd_Paint);
             this.Shown += new System.EventHandler(this.DrawerWnd_Shown);
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.DrawerWnd_Paint);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.DrawerWnd_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.DrawerWnd_KeyUp);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DrawerWnd_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DrawerWnd_MouseMove);
             this.ResumeLayout(false);

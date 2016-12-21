@@ -42,12 +42,14 @@ namespace GDIDrawer
         // delegate types for owner callbacks
         internal delegate int delIntGraphics(Graphics gr);
         internal delegate void delVoidPoint(Point p);
-
+        internal delegate void delLocalKeyEvent(bool bIsDown, Keys keyCode);
+        
         // event delegates (set by owner, null if not in use)
         internal delIntGraphics m_delRender;
         internal delVoidPoint m_delMouseMove;
         internal delVoidPoint m_delMouseLeftClick;
         internal delVoidPoint m_delMouseRightClick;
+        internal delLocalKeyEvent m_delKeyEvent;
 
         // this flag indicates that the drawer window is fully initialized and ready for rendering
         internal bool m_bIsInitialized = false;
@@ -387,6 +389,25 @@ namespace GDIDrawer
             }
         }
 
+        internal void SetBBImage (Bitmap bm)
+        {
+            // try it the fast way...
+            try
+            {
+                lock (m_bmUnderlay)
+                {
+                    if ((bm.Width != m_bmUnderlay.Width) || (bm.Height != m_bmUnderlay.Height))
+                        throw new ArgumentException("BBImage must be the same dimensions as the backbuffer!");
+
+                    m_bmUnderlay = new Bitmap(bm);
+                }
+            }
+            catch (Exception err)
+            {
+                _log.WriteLine("DrawerWnd::SetBBImage : " + err.Message);
+            }
+        }
+
         internal void SetBBPixel(Point p, Color c)
         {
             if (m_bmUnderlay != null && p.X >= 0 && p.X < m_ciWidth && p.Y >= 0 && p.Y < m_ciHeight)
@@ -402,6 +423,25 @@ namespace GDIDrawer
                 }
             }
         }
+
+        internal Color GetBBPixel(Point p)
+        {
+            if (m_bmUnderlay != null && p.X >= 0 && p.X < m_ciWidth && p.Y >= 0 && p.Y < m_ciHeight)
+            {
+                try
+                {
+                    lock (m_bmUnderlay)
+                        return m_bmUnderlay.GetPixel(p.X, p.Y);
+                }
+                catch (Exception err)
+                {
+                    _log.WriteLine("DrawerWnd::GetBBPixel : " + err.Message);
+                }
+            }
+
+            throw new ArgumentException("Unable to get pixel!");
+        }
+
         private void DrawerWnd_Shown(object sender, EventArgs e)
         {
             // create frontbuffer
@@ -440,6 +480,36 @@ namespace GDIDrawer
             Render();
             // mark as all initialization of this object is done
             m_bIsInitialized = true;
+        }
+
+        private void DrawerWnd_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (m_delKeyEvent != null)
+            {
+                try
+                {
+                    m_delKeyEvent(true, e.KeyCode);
+                }
+                catch (Exception err)
+                {
+                    _log.WriteLine("Error in KeyDown event - " + err.Message);
+                }
+            }
+        }
+
+        private void DrawerWnd_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (m_delKeyEvent != null)
+            {
+                try
+                {
+                    m_delKeyEvent(false, e.KeyCode);
+                }
+                catch (Exception err)
+                {
+                    _log.WriteLine("Error in KeyUp event - " + err.Message);
+                }
+            }
         }
     }
 }

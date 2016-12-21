@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GDIDrawer", "GDIDrawer\GDIDrawer.csproj", "{0C1A2DA6-760D-4E53-9EDC-5670F35BBBD4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGDIDrawer", "TestGDIDrawer\TestGDIDrawer.csproj", "{946F08E9-0AB9-4A51-9F51-B8D33C4798EE}"

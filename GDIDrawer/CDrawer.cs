@@ -65,9 +65,17 @@ namespace GDIDrawer
     public delegate void GDIDrawerMouseEvent (Point pos, CDrawer dr);
 
     /// <summary>
+    /// Delegate used for key up/down event is the drawer window
+    /// </summary>
+    /// <param name="bIsDown">true if the key is pressed, false if released</param>
+    /// <param name="keyCode">the key code for the key that was pressed or released</param>
+    /// <param name="dr">the drawer that caused the event</param>
+    public delegate void GDIDrawerKeyEvent(bool bIsDown, Keys keyCode, CDrawer dr);
+
+    /// <summary>
     /// CNT CDrawer
     /// </summary>
-    public class CDrawer
+    public class CDrawer : IDisposable
     {
         private static Random _rnd = new Random();
 
@@ -186,6 +194,7 @@ namespace GDIDrawer
         public event GDIDrawerMouseEvent MouseLeftClickScaled = null;
         public event GDIDrawerMouseEvent MouseRightClick = null;
         public event GDIDrawerMouseEvent MouseRightClickScaled = null;
+        public event GDIDrawerKeyEvent KeyboardEvent = null;
 
         /// <summary>
         /// Close the Drawer
@@ -199,7 +208,25 @@ namespace GDIDrawer
                 m_wDrawer.m_bTerminate = true; // flag thread timer to bail out, closing the form
                 m_tDrawerThread.Join(5000); // Wait til thread bails
             }
+
+            _log.WriteLine("Drawer Closed...");
         }
+
+        /// <summary>
+        /// Dispose the Drawer
+        /// </summary>
+        public void Dispose ()
+        {
+            try
+            {
+                Close();
+            }
+            catch (Exception err)
+            {
+                _log.WriteLine("Dispose : " + err.Message);
+            }
+        }
+
         /// <summary>
         /// Retrieve last known mouse position in CDrawer coordinates 
         /// </summary>
@@ -399,6 +426,7 @@ namespace GDIDrawer
                 m_llShapes.Clear();
             }
         }
+        
         /// <summary>
         /// Create a new CDrawer window
         /// </summary>
@@ -439,6 +467,46 @@ namespace GDIDrawer
             ContinuousUpdate = bContinuousUpdate;
         }
 
+        public CDrawer(Bitmap Background, bool bContinuousUpdate = true, bool bRedundaMouse = false)
+        {
+            // not happy about re-create of ctor, but some things need to be in a certain order...
+            if (Background == null)
+                throw new ArgumentException("Drawer background can't be null!");
+
+            if (Background.Width < 1 || Background.Height < 1)
+                throw new ArgumentException("Drawer background must be at least 1 x 1 in size!");
+            
+            // set window size from bitmap
+            m_ciWidth = Background.Width;
+            m_ciHeight = Background.Height;
+
+            // other defaults
+            RedundaMouse = bRedundaMouse;
+            m_iScale = 1;
+
+            // linked list of shapes init (empty)
+            m_llShapes = new LinkedList<IRender>();
+
+            // start the thread for the rendering window
+            m_tDrawerThread = new Thread(TStart);
+            m_tDrawerThread.IsBackground = true;
+            m_tDrawerThread.Start(m_wDrawer);
+
+            // silly, but required because object takes time to be created (in it's own thread)
+            // can't assume instant (or blocking) creation...
+            //System.Threading.Thread.Sleep(250);
+            while (m_wDrawer == null || !m_wDrawer.m_bIsInitialized) // Wait for first Paint to complete
+                System.Threading.Thread.Sleep(1); // Allow for Render() to complete
+
+            // not sure about this - don't like it
+            // Allow for potential 2nd Paint event to complete
+            System.Threading.Thread.Sleep(100);
+            ContinuousUpdate = bContinuousUpdate;
+
+            // now stuff the image into the backbuffer
+            m_wDrawer.SetBBImage(Background);
+        }
+
         /// <summary>
         /// Set a background persistent pixel in the CDrawer
         /// </summary>
@@ -454,6 +522,24 @@ namespace GDIDrawer
 
             if (m_wDrawer != null && m_tDrawerThread != null)
                 m_wDrawer.SetBBPixel(new Point(iX, iY), colour);
+        }
+
+        /// <summary>
+        /// Get a background persistent pixel in the CDrawer
+        /// </summary>
+        /// <param name="iX">X Coordinate</param>
+        /// <param name="iY">Y Coordinate</param>
+        public Color GetBBPixel(int iX, int iY)
+        {
+            if (iX < 0 || iX >= m_ciWidth)
+                throw new ArgumentOutOfRangeException("CDrawer:GetBBPixel : iX must be between 0 and " + (m_ciWidth - 1).ToString() + " inclusive");
+            if (iY < 0 || iY >= m_ciHeight)
+                throw new ArgumentOutOfRangeException("CDrawer:GetBBPixel : iY must be between 0 and " + (m_ciHeight - 1).ToString() + " inclusive");
+
+            if (m_wDrawer != null && m_tDrawerThread != null)
+                return m_wDrawer.GetBBPixel(new Point(iX, iY));
+
+            throw new ArgumentException("Unable to get back-buffer pixel...");
         }
 
         /// <summary>
@@ -502,8 +588,18 @@ namespace GDIDrawer
             m_wDrawer.m_delMouseLeftClick = new DrawerWnd.delVoidPoint(CBMouseLeftClick);
             m_wDrawer.m_delMouseRightClick = new DrawerWnd.delVoidPoint(CBMouseRightClick);
 
+            // setup delegate for callback in drawer window to handle keyboard events
+            m_wDrawer.m_delKeyEvent = new DrawerWnd.delLocalKeyEvent(CBKeyEvent);
+
             // start the drawer window in this thread
-            Application.Run(m_wDrawer);
+            try
+            {
+                Application.Run(m_wDrawer);
+            }
+            catch (Exception err)
+            {
+                _log.WriteLine("Exception in TStart: " + err.Message);
+            }
 
             // thread will run out when drawing window application runs out
         }
@@ -586,6 +682,22 @@ namespace GDIDrawer
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////
+        // Callback from drawer window that handles a keyboard event
+        ///////////////////////////////////////////////////////////////////////////////////////
+        internal void CBKeyEvent (bool bIsDown, Keys keyCode)
+        {
+            try
+            {
+                if (KeyboardEvent != null)
+                    KeyboardEvent(bIsDown, keyCode, this);
+            }
+            catch (Exception err)
+            {
+                _log.WriteLine("CDrawer::CBKeyEvent : " + err.Message);
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////////
         // Callback from drawer window that handles a mouse right click event
         ///////////////////////////////////////////////////////////////////////////////////////
         internal void CBMouseRightClick(Point pt)
@@ -664,11 +776,28 @@ namespace GDIDrawer
         public void AddRectangle(int iXStart, int iYStart, int iWidth, int iHeight, Color? FillColor = null, int iBorderThickness = 0, Color? BorderColor = null)
         {
             if (iWidth < 1 || iHeight < 1)
-                throw new ArgumentException("The width and height of the rectangle must be greater than 1!");
+                throw new ArgumentException("The width and height of the rectangle must be greater than 0!");
 
             // add a rectangle to the list of shapes
             lock (m_llShapes)
                 m_llShapes.AddLast(new CRectangle(iXStart, iYStart, iWidth, iHeight, FillColor, iBorderThickness, BorderColor));
+        }
+
+        /// <summary>
+        /// Add a Rectangle to the CDrawer
+        /// </summary>
+        /// <param name="rect">Rectangle</param>
+        /// <param name="FillColor">Fill Color</param>
+        /// <param name="iBorderThickness">Border Thickness</param>
+        /// <param name="BorderColor">Border Color</param>
+        public void AddRectangle(Rectangle rect, Color? FillColor = null, int iBorderThickness = 0, Color? BorderColor = null)
+        {
+            if (rect.Width < 1 || rect.Height < 1)
+                throw new ArgumentException("The width and height of the rectangle must be greater than 0!");
+
+            // add a rectangle to the list of shapes
+            lock (m_llShapes)
+                m_llShapes.AddLast(new CRectangle(rect.Left, rect.Top, rect.Width, rect.Height, FillColor, iBorderThickness, BorderColor));
         }
 
         /// <summary>
@@ -684,11 +813,30 @@ namespace GDIDrawer
         public void AddCenteredRectangle(int iXCenter, int iYCenter, int iWidth, int iHeight, Color? FillColor = null, int iBorderThickness = 0, Color? BorderColor = null)
         {
             if (iWidth < 1 || iHeight < 1)
-                throw new ArgumentException("The width and height of the rectangle must be greater than 1!");
+                throw new ArgumentException("The width and height of the rectangle must be greater than 0!");
 
             // add a rectangle to the list of shapes
             lock (m_llShapes)
                 m_llShapes.AddLast(new CRectangle(iXCenter - iWidth / 2, iYCenter - iHeight / 2, iWidth, iHeight, FillColor, iBorderThickness, BorderColor));
+        }
+
+        /// <summary>
+        /// Add a centered Rectangle to the CDrawer
+        /// </summary>
+        /// <param name="pos">The centre of the Rectange</param>
+        /// <param name="iWidth">The width of the Rectangle</param>
+        /// <param name="iHeight">The height of the Rectangle</param>
+        /// <param name="FillColor">The Rectangle fill color</param>
+        /// <param name="iBorderThickness">Thickness of the outside border</param>
+        /// <param name="BorderColor">Color of the outside border</param>
+        public void AddCenteredRectangle(Point pos, int iWidth, int iHeight, Color? FillColor = null, int iBorderThickness = 0, Color? BorderColor = null)
+        {
+            if (iWidth < 1 || iHeight < 1)
+                throw new ArgumentException("The width and height of the rectangle must be greater than 0!");
+
+            // add a rectangle to the list of shapes
+            lock (m_llShapes)
+                m_llShapes.AddLast(new CRectangle(pos.X - iWidth / 2, pos.Y - iHeight / 2, iWidth, iHeight, FillColor, iBorderThickness, BorderColor));
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////
@@ -706,6 +854,9 @@ namespace GDIDrawer
         /// <param name="BorderColor">Border Color</param>
         public void AddEllipse(int iXStart, int iYStart, int iWidth, int iHeight, Color? FillColor = null, int iBorderThickness = 0, Color? BorderColor = null)
         {
+            if (iWidth < 1 || iHeight < 1)
+                throw new ArgumentException("The width and height of the ellipse must be greater than 0!");
+            
             // add a rectangle to the list of shapes
             lock (m_llShapes)
             {
@@ -724,10 +875,34 @@ namespace GDIDrawer
         /// <param name="BorderColor">Border Color</param>
         public void AddCenteredEllipse(int iXCenter, int iYCenter, int iWidth, int iHeight, Color? FillColor = null, int iBorderThickness = 0, Color? BorderColor = null)
         {
+            if (iWidth < 1 || iHeight < 1)
+                throw new ArgumentException("The width and height of the ellipse must be greater than 0!");
+
             // add a rectangle to the list of shapes
             lock (m_llShapes)
             {
                 m_llShapes.AddLast(new CEllipse(iXCenter - iWidth / 2, iYCenter - iHeight / 2, iWidth, iHeight, FillColor, iBorderThickness, BorderColor));
+            }
+        }
+
+        /// <summary>
+        /// Add a Centered Ellipse to the CDrawer
+        /// </summary>
+        /// <param name="pos">The centre of the ellipse</param>
+        /// <param name="iWidth">Width</param>
+        /// <param name="iHeight">Height</param>
+        /// <param name="FillColor">Fill Color</param>
+        /// <param name="iBorderThickness">Border thickness</param>
+        /// <param name="BorderColor">Border Color</param>
+        public void AddCenteredEllipse(Point pos, int iWidth, int iHeight, Color? FillColor = null, int iBorderThickness = 0, Color? BorderColor = null)
+        {
+            if (iWidth < 1 || iHeight < 1)
+                throw new ArgumentException("The width and height of the ellipse must be greater than 0!");
+
+            // add a rectangle to the list of shapes
+            lock (m_llShapes)
+            {
+                m_llShapes.AddLast(new CEllipse(pos.X - iWidth / 2, pos.Y - iHeight / 2, iWidth, iHeight, FillColor, iBorderThickness, BorderColor));
             }
         }
 
@@ -819,6 +994,21 @@ namespace GDIDrawer
             lock (m_llShapes)
                 m_llShapes.AddLast(new CText(sText, fTextSize, TextColor));
         }
+
+        /// <summary>
+        /// Add text centered in the bounding box, may clip
+        /// </summary>
+        /// <param name="sText">text to add</param>
+        /// <param name="fTextSize">size of text, generally approximating point size</param>
+        /// <param name="BoundingRect">the bounding box as a rectangle</param>
+        /// <param name="TextColor">colour of the text</param>
+        public void AddText(string sText, float fTextSize, Rectangle BoundingRect, Color ? TextColor = null)
+        {
+            // add a rectangle to the list of shapes
+            lock (m_llShapes)
+                m_llShapes.AddLast(new CText(sText, fTextSize, BoundingRect, TextColor));
+        }
+
         /// <summary>
         /// Add text centered in the defining bounding box, may clip
         /// </summary>
@@ -1098,7 +1288,12 @@ namespace GDIDrawer
             m_fPointSize = fTextSize;
             m_rBoundingRect = new System.Drawing.Rectangle(iXStart, iYStart, iWidth, iHeight);
  
-            m_Color = TextColor != null ? (Color)TextColor : Color.Black;
+            m_Color = TextColor != null ? (Color)TextColor : Color.Black;            
+        }
+
+        public CText(string sText, float fTextSize, Rectangle BoundingRect, Color? TextColor = null)
+            : this (sText, fTextSize, BoundingRect.X, BoundingRect.Y, BoundingRect.Width, BoundingRect.Height, TextColor)
+        {
         }
 
         public void Render(Graphics gr, int iScale)
@@ -1115,6 +1310,9 @@ namespace GDIDrawer
         }
     }
 
+    /// <summary>
+    /// Generate random colours!
+    /// </summary>
     static public class RandColor
     {
         static private Random rnd = new Random();
