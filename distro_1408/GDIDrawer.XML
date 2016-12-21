@@ -1,0 +1,368 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>GDIDrawer</name>
+    </assembly>
+    <members>
+        <member name="T:GDIDrawer.GDIDrawerMouseEvent">
+            <summary>
+            Delegate used for mouse events with the drawer
+            </summary>
+            <param name="pos">The position of the mouse in the event</param>
+            <param name="dr">The drawer that generated the event</param>
+        </member>
+        <member name="T:GDIDrawer.GDIDrawerKeyEvent">
+            <summary>
+            Delegate used for key up/down event is the drawer window
+            </summary>
+            <param name="bIsDown">true if the key is pressed, false if released</param>
+            <param name="keyCode">the key code for the key that was pressed or released</param>
+            <param name="dr">the drawer that caused the event</param>
+        </member>
+        <member name="T:GDIDrawer.CDrawer">
+            <summary>
+            CNT CDrawer
+            </summary>
+        </member>
+        <member name="F:GDIDrawer.CDrawer.m_ciWidth">
+            <summary>
+            Width of the drawer window
+            </summary>
+        </member>
+        <member name="F:GDIDrawer.CDrawer.m_ciHeight">
+            <summary>
+            Height of the drawer window
+            </summary>
+        </member>
+        <member name="P:GDIDrawer.CDrawer.Position">
+            <summary>
+            Set the desktop position for the drawer window
+            </summary>
+        </member>
+        <member name="P:GDIDrawer.CDrawer.DrawerWindowSize">
+            <summary>
+            Get the size of the drawer window
+            </summary>
+        </member>
+        <member name="P:GDIDrawer.CDrawer.RedundaMouse">
+            <summary>
+            determines if mouse coords/state will generate redundant values 
+            </summary>
+        </member>
+        <member name="E:GDIDrawer.CDrawer.MouseMove">
+            <summary>
+            The mouse has moved over the drawer window
+            </summary>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.Close">
+            <summary>
+            Close the Drawer
+            </summary>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.Dispose">
+            <summary>
+            Dispose the Drawer
+            </summary>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.GetLastMousePosition(System.Drawing.Point@)">
+            <summary>
+            Retrieve last known mouse position in CDrawer coordinates 
+            </summary>
+            <param name="pCoords">out : last known point</param>
+            <returns>true if coordinates are new since last read</returns>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.GetLastMousePositionScaled(System.Drawing.Point@)">
+            <summary>
+            Retrieve Scaled last known mouse position in CDrawer coordinates 
+            </summary>
+            <param name="pCoords">out : last known scaled point</param>
+            <returns>true if coordinates are new since last read</returns>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.GetLastMouseLeftClick(System.Drawing.Point@)">
+            <summary>
+            Retrieve last known point of Mouse Left Click in CDrawer
+            </summary>
+            <param name="pCoords">out : last known point of Left Click</param>
+            <returns>true if point is new since last read</returns>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.GetLastMouseLeftClickScaled(System.Drawing.Point@)">
+            <summary>
+            Retrieve Scaled last known point of Mouse Left Click in CDrawer
+            </summary>
+            <param name="pCoords">out : scaled last known point of Left Click</param>
+            <returns>true if point is new since last read</returns>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.GetLastMouseRightClick(System.Drawing.Point@)">
+            <summary>
+            Retrieve last known point of Mouse Right Click in CDrawer
+            </summary>
+            <param name="pCoords">out : last known point of Right Click</param>
+            <returns>true if point is new since last read</returns>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.GetLastMouseRightClickScaled(System.Drawing.Point@)">
+            <summary>
+            Retrieve Scaled last known point of Mouse Right Click in CDrawer
+            </summary>
+            <param name="pCoords">out : scaled last known point of Right Click</param>
+            <returns>true if point is new since last read</returns>
+        </member>
+        <member name="P:GDIDrawer.CDrawer.Scale">
+            <summary>
+            Get/Set the current CDrawer Scaling factor
+            </summary>
+        </member>
+        <member name="P:GDIDrawer.CDrawer.ScaledWidth">
+            <summary>
+            Get current ScaledWidth ** May be truncated based on Scale value and Width
+            </summary>
+        </member>
+        <member name="P:GDIDrawer.CDrawer.ScaledHeight">
+            <summary>
+            Get current ScaledHeight ** May be truncated based on Scale value
+            </summary>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.Render">
+            <summary>
+            Render all currently Added objects immediately
+            </summary>
+        </member>
+        <member name="P:GDIDrawer.CDrawer.ContinuousUpdate">
+            <summary>
+            Get/Set Whether the CDrawer will periodically Render automatically
+            </summary>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.Clear">
+            <summary>
+            Clear the current list of shapes to "wipe" the canvas 
+            </summary>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.#ctor(System.Int32,System.Int32,System.Boolean,System.Boolean)">
+            <summary>
+            Create a new CDrawer window
+            </summary>
+            <param name="iWindowXSize">Width of new CDrawer</param>
+            <param name="iWindowYSize">Height of new CDrawer</param>
+            <param name="bContinuousUpdate">Automatic rendering enabled</param>
+            <param name="bRedundaMouse">Redunda-Mouse enabled</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.SetBBPixel(System.Int32,System.Int32,System.Drawing.Color)">
+            <summary>
+            Set a background persistent pixel in the CDrawer
+            </summary>
+            <param name="iX">X Coordinate</param>
+            <param name="iY">Y Coordinate</param>
+            <param name="colour">Color to set</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.GetBBPixel(System.Int32,System.Int32)">
+            <summary>
+            Get a background persistent pixel in the CDrawer
+            </summary>
+            <param name="iX">X Coordinate</param>
+            <param name="iY">Y Coordinate</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.SetBBScaledPixel(System.Int32,System.Int32,System.Drawing.Color)">
+            <summary>
+            Set a Scaled background persistent pixel in the CDrawer
+            </summary>
+            <param name="iX">Scaled X Coordinate</param>
+            <param name="iY">Scaled Y Coordinate</param>
+            <param name="colour">Color to set</param>
+        </member>
+        <member name="P:GDIDrawer.CDrawer.BBColour">
+            <summary>
+            When set, this property will fill the back-buffer with the specified colour
+            </summary>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddRectangle(System.Int32,System.Int32,System.Int32,System.Int32,System.Nullable{System.Drawing.Color},System.Int32,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add a Rectangle to the CDrawer
+            </summary>
+            <param name="iXStart">Bounding box Left/X start Coordinate</param>
+            <param name="iYStart">Bounding box Top/Y start Coordinate</param>
+            <param name="iWidth">Bounding box Width</param>
+            <param name="iHeight">Bounding box Height</param>
+            <param name="FillColor">Fill Color</param>
+            <param name="iBorderThickness">Border Thickness</param>
+            <param name="BorderColor">Border Color</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddRectangle(System.Drawing.Rectangle,System.Nullable{System.Drawing.Color},System.Int32,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add a Rectangle to the CDrawer
+            </summary>
+            <param name="rect">Rectangle</param>
+            <param name="FillColor">Fill Color</param>
+            <param name="iBorderThickness">Border Thickness</param>
+            <param name="BorderColor">Border Color</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddCenteredRectangle(System.Int32,System.Int32,System.Int32,System.Int32,System.Nullable{System.Drawing.Color},System.Int32,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add a centered Rectangle to the CDrawer
+            </summary>
+            <param name="iXCenter">X Coordinate of Rectangle center point</param>
+            <param name="iYCenter">Y Coordinate of Rectangle center point</param>
+            <param name="iWidth">The width of the Rectangle</param>
+            <param name="iHeight">The height of the Rectangle</param>
+            <param name="FillColor">The Rectangle fill color</param>
+            <param name="iBorderThickness">Thickness of the outside border</param>
+            <param name="BorderColor">Color of the outside border</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddCenteredRectangle(System.Drawing.Point,System.Int32,System.Int32,System.Nullable{System.Drawing.Color},System.Int32,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add a centered Rectangle to the CDrawer
+            </summary>
+            <param name="pos">The centre of the Rectange</param>
+            <param name="iWidth">The width of the Rectangle</param>
+            <param name="iHeight">The height of the Rectangle</param>
+            <param name="FillColor">The Rectangle fill color</param>
+            <param name="iBorderThickness">Thickness of the outside border</param>
+            <param name="BorderColor">Color of the outside border</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddEllipse(System.Int32,System.Int32,System.Int32,System.Int32,System.Nullable{System.Drawing.Color},System.Int32,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add an Ellipse to the CDrawer
+            </summary>
+            <param name="iXStart">Bounding box Left/X start Coordinate</param>
+            <param name="iYStart">Bounding box Top/Y start Coordinate</param>
+            <param name="iWidth">Bounding box Width</param>
+            <param name="iHeight">Bounding box Height</param>
+            <param name="FillColor">Fill Color</param>
+            <param name="iBorderThickness">Border Thickness</param>
+            <param name="BorderColor">Border Color</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddCenteredEllipse(System.Int32,System.Int32,System.Int32,System.Int32,System.Nullable{System.Drawing.Color},System.Int32,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add a Centered Ellipse to the CDrawer
+            </summary>
+            <param name="iXCenter">X Coordinate of Ellipse center point</param>
+            <param name="iYCenter">Y Coordinate of Ellipse center point</param>
+            <param name="iWidth">Width</param>
+            <param name="iHeight">Height</param>
+            <param name="FillColor">Fill Color</param>
+            <param name="iBorderThickness">Border thickness</param>
+            <param name="BorderColor">Border Color</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddCenteredEllipse(System.Drawing.Point,System.Int32,System.Int32,System.Nullable{System.Drawing.Color},System.Int32,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add a Centered Ellipse to the CDrawer
+            </summary>
+            <param name="pos">The centre of the ellipse</param>
+            <param name="iWidth">Width</param>
+            <param name="iHeight">Height</param>
+            <param name="FillColor">Fill Color</param>
+            <param name="iBorderThickness">Border thickness</param>
+            <param name="BorderColor">Border Color</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddLine(System.Int32,System.Int32,System.Int32,System.Int32,System.Nullable{System.Drawing.Color},System.Int32)">
+            <summary>
+            Add a Line to the CDrawer where start and end points are defined
+            </summary>
+            <param name="iXStart">X Coordinate of Start Point</param>
+            <param name="iYStart">Y Coordinate of Start Point</param>
+            <param name="iXEnd">X Coordinate of End Point</param>
+            <param name="iYEnd">Y Coordinate of End Point</param>
+            <param name="LineColor">Line Color</param>
+            <param name="iThickness">Line Thickness</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddLine(System.Drawing.Point,System.Double,System.Double,System.Nullable{System.Drawing.Color},System.Int32)">
+            <summary>
+            Add a line segment to the CDrawer at a known start point using a length and rotation angle
+            </summary>
+            <param name="StartPos">Start Point of the Line</param>
+            <param name="dLength">Length of Line segment</param>
+            <param name="dRotation">Rotation around start in Radians ( 0 is Up )</param>
+            <param name="LineColor">Line Color</param>
+            <param name="iThickness">Line Thickness</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddBezier(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.Nullable{System.Drawing.Color},System.Int32)">
+            <summary>
+            Add a Bezier Spline to the CDrawer, with start point, control point 1, control point 2, and end point
+            </summary>
+            <param name="iXStart">Start X Position (start of line)</param>
+            <param name="iYStart">Start Y Position (start of line)</param>
+            <param name="iCtrlPt1X">Control X Position 1 (deflection)</param>
+            <param name="iCtrlPt1Y">Control Y Position 1 (deflection)</param>
+            <param name="iCtrlPt2X">Control X Position 2 (deflection)</param>
+            <param name="iCtrlPt2Y">Control Y Position 2 (deflection)</param>
+            <param name="iXEnd">End X Position (end of line)</param>
+            <param name="iYEnd">End Y Position (end of line)</param>
+            <param name="LineColor">Line Colour</param>
+            <param name="iThickness">Line Thickness</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddPolygon(System.Int32,System.Int32,System.Int32,System.Int32,System.Double,System.Nullable{System.Drawing.Color},System.Int32,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add a Polygon to the CDrawer
+            </summary>
+            <param name="iXStart">Start X Coordinate of bounding box</param>
+            <param name="iYStart">Start Y Coordinate of bounding box</param>
+            <param name="iVertexRadius">Distance of each vertex from center</param>
+            <param name="iNumPoints">Number of points in polygon ( Triangle = 3 )</param>
+            <param name="dRotation">Rotation in radians of polygon</param>
+            <param name="FillColor">Fill Color of polygon</param>
+            <param name="iBorderThickness">Border thickness</param>
+            <param name="BorderColor">Border color</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddText(System.String,System.Single,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add text centered in the CDrawer
+            </summary>
+            <param name="sText">text to add</param>
+            <param name="fTextSize">size of text, generally approximating point size</param>
+            <param name="TextColor">Color of text</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddText(System.String,System.Single,System.Drawing.Rectangle,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add text centered in the bounding box, may clip
+            </summary>
+            <param name="sText">text to add</param>
+            <param name="fTextSize">size of text, generally approximating point size</param>
+            <param name="BoundingRect">the bounding box as a rectangle</param>
+            <param name="TextColor">colour of the text</param>
+        </member>
+        <member name="M:GDIDrawer.CDrawer.AddText(System.String,System.Single,System.Int32,System.Int32,System.Int32,System.Int32,System.Nullable{System.Drawing.Color})">
+            <summary>
+            Add text centered in the defining bounding box, may clip
+            </summary>
+            <param name="sText">text to add</param>
+            <param name="fTextSize">size of text, generally approximating point size</param>
+            <param name="iXStart">X Coordinate of bounding box</param>
+            <param name="iYStart">Y  Coordinate of bounding box</param>
+            <param name="iWidth">Width of bounding box</param>
+            <param name="iHeight">Height of bounding box</param>
+            <param name="TextColor">Color of text</param>
+        </member>
+        <member name="T:GDIDrawer.RandColor">
+            <summary>
+            Generate random colours!
+            </summary>
+        </member>
+        <member name="M:GDIDrawer.RandColor.GetColor">
+            <summary>
+            Get one of 64 random calculated colors
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:GDIDrawer.RandColor.GetKnownColor">
+            <summary>
+            Get a random Known Color
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="F:GDIDrawer.DrawerWnd.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:GDIDrawer.DrawerWnd.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:GDIDrawer.DrawerWnd.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+    </members>
+</doc>
