@@ -49,6 +49,8 @@ namespace GDIDrawer
         internal delVoidPoint m_delMouseMove;
         internal delVoidPoint m_delMouseLeftClick;
         internal delVoidPoint m_delMouseRightClick;
+        internal delVoidPoint m_delMouseLeftRelease;
+        internal delVoidPoint m_delMouseRightRelease;
         internal delLocalKeyEvent m_delKeyEvent;
 
         // this flag indicates that the drawer window is fully initialized and ready for rendering
@@ -97,6 +99,8 @@ namespace GDIDrawer
             m_delMouseMove = null;
             m_delMouseLeftClick = null;
             m_delMouseRightClick = null;
+            m_delMouseLeftRelease = null;
+            m_delMouseRightRelease = null;
 
             // cap/set references
             m_bgc = new BufferedGraphicsContext();
@@ -508,6 +512,38 @@ namespace GDIDrawer
                 catch (Exception err)
                 {
                     _log.WriteLine("Error in KeyUp event - " + err.Message);
+                }
+            }
+        }
+
+        private void DrawerWnd_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                if (m_delMouseLeftRelease != null && e.X >= 0 && e.X < m_ciWidth && e.Y > 0 && e.Y < m_ciHeight)
+                {
+                    try
+                    {
+                        m_delMouseLeftRelease(e.Location);
+                    }
+                    catch (Exception err)
+                    {
+                        _log.WriteLine("Error in MouseUp event - " + err.Message);
+                    }
+                }
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                if (m_delMouseRightRelease != null && e.X >= 0 && e.X < m_ciWidth && e.Y > 0 && e.Y < m_ciHeight)
+                {
+                    try
+                    {
+                        m_delMouseRightRelease(e.Location);
+                    }
+                    catch (Exception err)
+                    {
+                        _log.WriteLine("Error in MouseRelease event - " + err.Message);
+                    }
                 }
             }
         }

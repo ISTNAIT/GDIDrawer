@@ -53,6 +53,7 @@ namespace GDIDrawer
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.DrawerWnd_KeyUp);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DrawerWnd_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DrawerWnd_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.DrawerWnd_MouseUp);
             this.ResumeLayout(false);
 
         }

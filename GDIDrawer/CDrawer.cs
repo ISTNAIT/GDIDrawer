@@ -49,6 +49,7 @@ namespace GDIDrawer
     // Dec 04 2013 - SLW - Added position and size props (1.4.0.6)
     //                   - Changed AddLine methods to remove ambiguous pt to pt vs. rotation overloads
     //                   - Added AddCenteredRectangle method + added Width/Height < 1 checks to both AddRectangle methods
+    // Apr 13 2018 - SLW - Added Mouse Release Events (1.4.0.9)
     ///////////////////////////////////////////////////////////////////////////////////////
 
     // renderable interface definition for any type rendered in the drawer
@@ -184,6 +185,15 @@ namespace GDIDrawer
         private Point m_pLastMouseRightClickScaled = new Point(-1, -1);
         private bool m_bLastMouseRightClickNewScaled = false;
 
+        private Point m_pLastMouseLeftRelease = new Point(-1, -1);
+        private bool m_bLastMouseLeftReleaseNew = false;
+        private Point m_pLastMouseRightRelease = new Point(-1, -1);
+        private bool m_bLastMouseRightReleaseNew = false;
+        private Point m_pLastMouseLeftReleaseScaled = new Point(-1, -1);
+        private bool m_bLastMouseLeftReleaseNewScaled = false;
+        private Point m_pLastMouseRightReleaseScaled = new Point(-1, -1);
+        private bool m_bLastMouseRightReleaseNewScaled = false;
+
         // event delegates
         /// <summary>
         /// The mouse has moved over the drawer window
@@ -194,6 +204,10 @@ namespace GDIDrawer
         public event GDIDrawerMouseEvent MouseLeftClickScaled = null;
         public event GDIDrawerMouseEvent MouseRightClick = null;
         public event GDIDrawerMouseEvent MouseRightClickScaled = null;
+        public event GDIDrawerMouseEvent MouseLeftRelease = null;
+        public event GDIDrawerMouseEvent MouseLeftReleaseScaled = null;
+        public event GDIDrawerMouseEvent MouseRightRelease = null;
+        public event GDIDrawerMouseEvent MouseRightReleaseScaled = null;
         public event GDIDrawerKeyEvent KeyboardEvent = null;
 
         /// <summary>
@@ -337,6 +351,83 @@ namespace GDIDrawer
 
             // else return old coords, but indicate stale
             pCoords = m_pLastMouseRightClickScaled;
+            return false;
+        }
+
+        /// <summary>
+        /// Retrieve last known point of Mouse Left release in CDrawer
+        /// </summary>
+        /// <param name="pCoords">out : last known point of Left Release</param>
+        /// <returns>true if point is new since last read</returns>
+        public bool GetLastMouseLeftRelease(out Point pCoords)
+        {
+            // if the mouse has left released since last read, return actual coords
+            if (m_bLastMouseLeftReleaseNew)
+            {
+                m_bLastMouseLeftReleaseNew = false;
+                pCoords = m_pLastMouseLeftRelease;
+                return true;
+            }
+            // else return old coords, but indicate stale
+            pCoords = m_pLastMouseLeftRelease;
+            return false;
+        }
+
+        /// <summary>
+        /// Retrieve Scaled last known point of Mouse Left Release in CDrawer
+        /// </summary>
+        /// <param name="pCoords">out : scaled last known point of Left Release</param>
+        /// <returns>true if point is new since last read</returns>
+        public bool GetLastMouseLeftReleaseScaled(out Point pCoords)
+        {
+            // if the mouse has left released since last read, return actual coords
+            if (m_bLastMouseLeftReleaseNewScaled)
+            {
+                m_bLastMouseLeftReleaseNewScaled = false;
+                pCoords = m_pLastMouseLeftReleaseScaled;
+                return true;
+            }
+            // else return old coords, but indicate stale
+            pCoords = m_pLastMouseLeftReleaseScaled;
+            return false;
+        }
+
+        /// <summary>
+        /// Retrieve last known point of Mouse Right Release in CDrawer
+        /// </summary>
+        /// <param name="pCoords">out : last known point of Right Release</param>
+        /// <returns>true if point is new since last read</returns>
+        public bool GetLastMouseRightRelease(out Point pCoords)
+        {
+            // if the mouse has right released since last read, return actual coords
+            if (m_bLastMouseRightReleaseNew)
+            {
+                m_bLastMouseRightReleaseNew = false;
+                pCoords = m_pLastMouseRightRelease;
+                return true;
+            }
+            // else return old coords, but indicate stale
+            pCoords = m_pLastMouseRightRelease;
+            return false;
+        }
+
+        /// <summary>
+        /// Retrieve Scaled last known point of Mouse Right Release in CDrawer
+        /// </summary>
+        /// <param name="pCoords">out : scaled last known point of Right Release</param>
+        /// <returns>true if point is new since last read</returns>
+        public bool GetLastMouseRightReleaseScaled(out Point pCoords)
+        {
+            // if the mouse has right released since last read, return actual coords
+            if (m_bLastMouseRightReleaseNewScaled)
+            {
+                m_bLastMouseRightReleaseNewScaled = false;
+                pCoords = m_pLastMouseRightReleaseScaled;
+                return true;
+            }
+
+            // else return old coords, but indicate stale
+            pCoords = m_pLastMouseRightReleaseScaled;
             return false;
         }
 
@@ -587,6 +678,8 @@ namespace GDIDrawer
             // setup delegate for callback in drawer window to handle mouse click events
             m_wDrawer.m_delMouseLeftClick = new DrawerWnd.delVoidPoint(CBMouseLeftClick);
             m_wDrawer.m_delMouseRightClick = new DrawerWnd.delVoidPoint(CBMouseRightClick);
+            m_wDrawer.m_delMouseLeftRelease = new DrawerWnd.delVoidPoint(CBMouseLeftRelease);
+            m_wDrawer.m_delMouseRightRelease = new DrawerWnd.delVoidPoint(CBMouseRightRelease);
 
             // setup delegate for callback in drawer window to handle keyboard events
             m_wDrawer.m_delKeyEvent = new DrawerWnd.delLocalKeyEvent(CBKeyEvent);
@@ -682,22 +775,6 @@ namespace GDIDrawer
         }
 
         ///////////////////////////////////////////////////////////////////////////////////////
-        // Callback from drawer window that handles a keyboard event
-        ///////////////////////////////////////////////////////////////////////////////////////
-        internal void CBKeyEvent (bool bIsDown, Keys keyCode)
-        {
-            try
-            {
-                if (KeyboardEvent != null)
-                    KeyboardEvent(bIsDown, keyCode, this);
-            }
-            catch (Exception err)
-            {
-                _log.WriteLine("CDrawer::CBKeyEvent : " + err.Message);
-            }
-        }
-
-        ///////////////////////////////////////////////////////////////////////////////////////
         // Callback from drawer window that handles a mouse right click event
         ///////////////////////////////////////////////////////////////////////////////////////
         internal void CBMouseRightClick(Point pt)
@@ -733,6 +810,97 @@ namespace GDIDrawer
                 }
             }
         }
+
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // Callback from drawer window that handles a mouse left release event
+        ///////////////////////////////////////////////////////////////////////////////////////
+        internal void CBMouseLeftRelease(Point pt)
+        {
+            // save the last known mouse click position and mark as changed
+            m_pLastMouseLeftRelease = pt;
+            m_bLastMouseLeftReleaseNew = true;
+
+            try
+            {
+                if (MouseLeftRelease != null)
+                    MouseLeftRelease(pt, this);
+            }
+            catch (Exception err)
+            {
+                _log.WriteLine("CDrawer::CBMouseLeftRelease : " + err.Message);
+            }
+
+            Point pTemp = new Point(pt.X / m_iScale, pt.Y / m_iScale);
+            if ((pTemp != m_pLastMouseLeftReleaseScaled) || RedundaMouse)
+            {
+                m_pLastMouseLeftReleaseScaled = pTemp;
+                m_bLastMouseLeftReleaseNewScaled = true;
+
+                try
+                {
+                    if (MouseLeftReleaseScaled != null)
+                        MouseLeftReleaseScaled(pTemp, this);
+                }
+                catch (Exception err)
+                {
+                    _log.WriteLine("CDrawer::CBMouseLeftReleaseScaled : " + err.Message);
+                }
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // Callback from drawer window that handles a mouse right release event
+        ///////////////////////////////////////////////////////////////////////////////////////
+        internal void CBMouseRightRelease(Point pt)
+        {
+            // save the last known mouse release position and mark as changed
+            m_pLastMouseRightRelease = pt;
+            m_bLastMouseRightReleaseNew = true;
+
+            try
+            {
+                if (MouseRightRelease != null)
+                    MouseRightRelease(pt, this);
+            }
+            catch (Exception err)
+            {
+                _log.WriteLine("CDrawer::CBMouseRightRelease : " + err.Message);
+            }
+
+            Point pTemp = new Point(pt.X / m_iScale, pt.Y / m_iScale);
+            if ((pTemp != m_pLastMouseRightReleaseScaled) || RedundaMouse)
+            {
+                m_pLastMouseRightReleaseScaled = pTemp;
+                m_bLastMouseRightReleaseNewScaled = true;
+
+                try
+                {
+                    if (MouseRightReleaseScaled != null)
+                        MouseRightReleaseScaled(pTemp, this);
+                }
+                catch (Exception err)
+                {
+                    _log.WriteLine("CDrawer::CBMouseRightReleaseScaled : " + err.Message);
+                }
+            }
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // Callback from drawer window that handles a keyboard event
+        ///////////////////////////////////////////////////////////////////////////////////////
+        internal void CBKeyEvent (bool bIsDown, Keys keyCode)
+        {
+            try
+            {
+                if (KeyboardEvent != null)
+                    KeyboardEvent(bIsDown, keyCode, this);
+            }
+            catch (Exception err)
+            {
+                _log.WriteLine("CDrawer::CBKeyEvent : " + err.Message);
+            }
+        }
+
 
         ///////////////////////////////////////////////////////////////////////////////////////
         // Rendering (intended to be used as a callback from the drawer window)
@@ -1307,6 +1475,51 @@ namespace GDIDrawer
             int iWidth = m_bFull ? (int)gr.VisibleClipBounds.Width : m_rBoundingRect.Width * iScale;
             int iHeight = m_bFull ? (int)gr.VisibleClipBounds.Height : m_rBoundingRect.Height * iScale;
             gr.DrawString(m_sText, new Font("Trebuchet MS", m_fPointSize), new SolidBrush(m_Color), new RectangleF(m_rBoundingRect.X * iScale, m_rBoundingRect.Y * iScale, iWidth, iHeight), drawFormat);
+        }
+    }
+
+    /// <summary>
+    /// Some coordinate helper methods.
+    /// </summary>
+    static public class CoordinateHelper
+    {
+        /// <summary>
+        /// Return the distance between two points.
+        /// </summary>
+        /// <param name="A">Point A</param>
+        /// <param name="B">Point B</param>
+        /// <returns>Distance between A and B</returns>
+        static public double GetDistance (Point A, Point B)
+        {
+            return Math.Sqrt(Math.Pow(A.X - B.X, 2) + Math.Pow(A.Y - B.Y, 2));
+        }
+
+        /// <summary>
+        /// Offset a position by Radius at Angle.
+        /// </summary>
+        /// <param name="Position">Source Position</param>
+        /// <param name="Angle">Angle of Displacement</param>
+        /// <param name="Radius">Displacement Radius</param>
+        /// <returns></returns>
+        static public PointF OffsetByAngle (PointF Position, double Angle, double Radius)
+        {
+            return new PointF(
+                (float)(Position.X + Math.Cos(Angle) * Radius),
+                (float)(Position.Y + Math.Sin(Angle) * Radius));
+        }
+
+        /// <summary>
+        /// Same as OffsetByAngle, but unit circle is rotated 90 degrees
+        /// </summary>
+        /// <param name="Position"></param>
+        /// <param name="Angle"></param>
+        /// <param name="Radius"></param>
+        /// <returns></returns>
+        static public PointF OffsetByAngle2(PointF Position, double Angle, double Radius)
+        {
+            return new PointF(
+                (float)(Position.X + Math.Sin(Angle) * Radius),
+                (float)(Position.Y + Math.Cos(Angle) * Radius));
         }
     }
 
