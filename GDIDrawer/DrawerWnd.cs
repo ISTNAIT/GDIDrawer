@@ -15,9 +15,6 @@ namespace GDIDrawer
         internal readonly int m_ciWidth;
         internal readonly int m_ciHeight;
 
-        // log file
-        internal StatusLog _log = null;
-
         // position of the window (must be invoked)
         internal delegate void delSetPos(Point pos);
         internal void SetDTPos(Point pos)
@@ -87,9 +84,6 @@ namespace GDIDrawer
         {
             InitializeComponent();
 
-            // use the log as built from parent
-            _log = dr._log;
-
             // save window size
             m_ciWidth = dr.m_ciWidth;
             m_ciHeight = dr.m_ciHeight;
@@ -113,7 +107,7 @@ namespace GDIDrawer
             FillBB(Color.Black);
 
             // show that drawer is up and running
-            _log.WriteLine("Drawer Started...");            
+            CDrawer.LocalLog("Drawer Started...");            
         }
 
         //testing version
@@ -284,7 +278,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("DrawerWnd::Render (Underlay) : " + err.Message);
+                    CDrawer.LocalLog("DrawerWnd::Render (Underlay) : " + err.Message);
                 }
 
                 // invoke controller class rendering...
@@ -294,7 +288,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("DrawerWnd::Render (main) : " + err.Message);
+                    CDrawer.LocalLog("DrawerWnd::Render (main) : " + err.Message);
                 }
 
                 // flip bb to fb
@@ -304,7 +298,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("DrawerWnd::Render (Flip) : " + err.Message);
+                    CDrawer.LocalLog("DrawerWnd::Render (Flip) : " + err.Message);
                 }
 
                 // stop the stopwatch
@@ -356,7 +350,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("Error in MouseMove event - " + err.Message);
+                    CDrawer.LocalLog("Error in MouseMove event - " + err.Message);
                 }
             }
         }
@@ -373,7 +367,7 @@ namespace GDIDrawer
                     }
                     catch (Exception err)
                     {
-                        _log.WriteLine("Error in MouseDown event - " + err.Message);
+                        CDrawer.LocalLog("Error in MouseDown event - " + err.Message);
                     }
                 }                
             }
@@ -387,7 +381,7 @@ namespace GDIDrawer
                     }
                     catch (Exception err)
                     {
-                        _log.WriteLine("Error in MouseDown event - " + err.Message);
+                        CDrawer.LocalLog("Error in MouseDown event - " + err.Message);
                     }
                 }                
             }
@@ -408,7 +402,7 @@ namespace GDIDrawer
             }
             catch (Exception err)
             {
-                _log.WriteLine("DrawerWnd::SetBBImage : " + err.Message);
+                CDrawer.LocalLog("DrawerWnd::SetBBImage : " + err.Message);
             }
         }
 
@@ -423,7 +417,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("DrawerWnd::SetBBPixel : " + err.Message);
+                    CDrawer.LocalLog("DrawerWnd::SetBBPixel : " + err.Message);
                 }
             }
         }
@@ -439,7 +433,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("DrawerWnd::GetBBPixel : " + err.Message);
+                    CDrawer.LocalLog("DrawerWnd::GetBBPixel : " + err.Message);
                 }
             }
 
@@ -496,7 +490,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("Error in KeyDown event - " + err.Message);
+                    CDrawer.LocalLog("Error in KeyDown event - " + err.Message);
                 }
             }
         }
@@ -511,7 +505,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("Error in KeyUp event - " + err.Message);
+                    CDrawer.LocalLog("Error in KeyUp event - " + err.Message);
                 }
             }
         }
@@ -528,7 +522,7 @@ namespace GDIDrawer
                     }
                     catch (Exception err)
                     {
-                        _log.WriteLine("Error in MouseUp event - " + err.Message);
+                        CDrawer.LocalLog("Error in MouseUp event - " + err.Message);
                     }
                 }
             }
@@ -542,7 +536,7 @@ namespace GDIDrawer
                     }
                     catch (Exception err)
                     {
-                        _log.WriteLine("Error in MouseRelease event - " + err.Message);
+                        CDrawer.LocalLog("Error in MouseRelease event - " + err.Message);
                     }
                 }
             }

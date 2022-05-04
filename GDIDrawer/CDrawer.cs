@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -50,6 +51,8 @@ namespace GDIDrawer
     //                   - Changed AddLine methods to remove ambiguous pt to pt vs. rotation overloads
     //                   - Added AddCenteredRectangle method + added Width/Height < 1 checks to both AddRectangle methods
     // Apr 13 2018 - SLW - Added Mouse Release Events (1.4.0.9)
+    // May 04 2022 - SLW - Updated .NET framework version (1.5.0.0)
+    //                   - Updated logging to single file, default off
     ///////////////////////////////////////////////////////////////////////////////////////
 
     // renderable interface definition for any type rendered in the drawer
@@ -81,7 +84,7 @@ namespace GDIDrawer
         private static Random _rnd = new Random();
 
         // log file for troubleshooting/logging events
-        internal StatusLog _log = new StatusLog(@"drawer_log" + _rnd.Next (10000, 100000).ToString() + ".txt");        
+        internal static StatusLog _log = new StatusLog(@"drawer_log.txt");
 
         /// <summary>
         /// Width of the drawer window
@@ -110,7 +113,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("CDrawer::Position (get): " + err.Message);
+                    LocalLog("CDrawer::Position (get): " + err.Message);
                 }
 
                 return Pos;
@@ -126,7 +129,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("CDrawer::Position (set): " + err.Message);
+                    LocalLog("CDrawer::Position (set): " + err.Message);
                 }
             }
         }
@@ -148,7 +151,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("CDrawer::DrawerWindowSize : " + err.Message);
+                    LocalLog("CDrawer::DrawerWindowSize : " + err.Message);
                 }
 
                 return sz;
@@ -168,6 +171,8 @@ namespace GDIDrawer
         /// determines if mouse coords/state will generate redundant values 
         /// </summary>
         public bool RedundaMouse { set; get; }
+
+        public static bool LoggingOn { set; get; } = false;
 
         // mouse move state variables
         private Point m_pLastMouseMove = new Point(-1, -1);
@@ -223,7 +228,7 @@ namespace GDIDrawer
                 m_tDrawerThread.Join(5000); // Wait til thread bails
             }
 
-            _log.WriteLine("Drawer Closed...");
+            LocalLog("Drawer Closed...");
         }
 
         /// <summary>
@@ -237,8 +242,18 @@ namespace GDIDrawer
             }
             catch (Exception err)
             {
-                _log.WriteLine("Dispose : " + err.Message);
+                LocalLog("Dispose : " + err.Message);
             }
+        }
+
+        internal static void LocalLog (string sMessage)
+        {
+            // log to debug
+            System.Diagnostics.Trace.WriteLine(sMessage);
+            
+            // log to file if requested
+            if (LoggingOn)
+                _log?.WriteLine(sMessage);
         }
 
         /// <summary>
@@ -525,7 +540,7 @@ namespace GDIDrawer
         /// <param name="iWindowYSize">Height of new CDrawer</param>
         /// <param name="bContinuousUpdate">Automatic rendering enabled</param>
         /// <param name="bRedundaMouse">Redunda-Mouse enabled</param>
-        public CDrawer(int iWindowXSize = 800, int iWindowYSize = 600, bool bContinuousUpdate = true, bool bRedundaMouse = false)
+        public CDrawer(int iWindowXSize = 800, int iWindowYSize = 600, bool bContinuousUpdate = true, bool bRedundaMouse = false, bool bLogging = false)
         {
             // set window size, verify size
             m_ciWidth = iWindowXSize;
@@ -558,7 +573,7 @@ namespace GDIDrawer
             ContinuousUpdate = bContinuousUpdate;
         }
 
-        public CDrawer(Bitmap Background, bool bContinuousUpdate = true, bool bRedundaMouse = false)
+        public CDrawer(Bitmap Background, bool bContinuousUpdate = true, bool bRedundaMouse = false, bool bLogging = false)
         {
             // not happy about re-create of ctor, but some things need to be in a certain order...
             if (Background == null)
@@ -691,7 +706,7 @@ namespace GDIDrawer
             }
             catch (Exception err)
             {
-                _log.WriteLine("Exception in TStart: " + err.Message);
+                LocalLog("Exception in TStart: " + err.Message);
             }
 
             // thread will run out when drawing window application runs out
@@ -714,7 +729,7 @@ namespace GDIDrawer
             }
             catch (Exception err)
             {
-                _log.WriteLine("CDrawer::CBMouseMove : " + err.Message);
+                LocalLog("CDrawer::CBMouseMove : " + err.Message);
             }
 
             // scaled stuff
@@ -732,7 +747,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("CDrawer::CBMouseMove : " + err.Message);
+                    LocalLog("CDrawer::CBMouseMove : " + err.Message);
                 }
             }
         }
@@ -753,7 +768,7 @@ namespace GDIDrawer
             }
             catch (Exception err)
             {
-                _log.WriteLine("CDrawer::CBMouseLeftClick : " + err.Message);
+                LocalLog("CDrawer::CBMouseLeftClick : " + err.Message);
             }
 
             Point pTemp = new Point(pt.X / m_iScale, pt.Y / m_iScale);
@@ -769,7 +784,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("CDrawer::CBMouseLeftClick : " + err.Message);
+                    LocalLog("CDrawer::CBMouseLeftClick : " + err.Message);
                 }
             }
         }
@@ -790,7 +805,7 @@ namespace GDIDrawer
             }
             catch (Exception err)
             {
-                _log.WriteLine("CDrawer::CBMouseRightClick : " + err.Message);
+                LocalLog("CDrawer::CBMouseRightClick : " + err.Message);
             }
 
             Point pTemp = new Point(pt.X / m_iScale, pt.Y / m_iScale);
@@ -806,7 +821,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("CDrawer::CBMouseRightClick : " + err.Message);
+                    LocalLog("CDrawer::CBMouseRightClick : " + err.Message);
                 }
             }
         }
@@ -827,7 +842,7 @@ namespace GDIDrawer
             }
             catch (Exception err)
             {
-                _log.WriteLine("CDrawer::CBMouseLeftRelease : " + err.Message);
+                LocalLog("CDrawer::CBMouseLeftRelease : " + err.Message);
             }
 
             Point pTemp = new Point(pt.X / m_iScale, pt.Y / m_iScale);
@@ -843,7 +858,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("CDrawer::CBMouseLeftReleaseScaled : " + err.Message);
+                    LocalLog("CDrawer::CBMouseLeftReleaseScaled : " + err.Message);
                 }
             }
         }
@@ -864,7 +879,7 @@ namespace GDIDrawer
             }
             catch (Exception err)
             {
-                _log.WriteLine("CDrawer::CBMouseRightRelease : " + err.Message);
+                LocalLog("CDrawer::CBMouseRightRelease : " + err.Message);
             }
 
             Point pTemp = new Point(pt.X / m_iScale, pt.Y / m_iScale);
@@ -880,7 +895,7 @@ namespace GDIDrawer
                 }
                 catch (Exception err)
                 {
-                    _log.WriteLine("CDrawer::CBMouseRightReleaseScaled : " + err.Message);
+                    LocalLog("CDrawer::CBMouseRightReleaseScaled : " + err.Message);
                 }
             }
         }
@@ -897,7 +912,7 @@ namespace GDIDrawer
             }
             catch (Exception err)
             {
-                _log.WriteLine("CDrawer::CBKeyEvent : " + err.Message);
+                LocalLog("CDrawer::CBKeyEvent : " + err.Message);
             }
         }
 
@@ -1091,7 +1106,7 @@ namespace GDIDrawer
             // add a line to the list of shapes
             lock (m_llShapes)
                 m_llShapes.AddLast(new CLine(iXStart, iYStart, iXEnd, iYEnd, LineColor, iThickness));
-        }
+        } 
         /// <summary>
         /// Add a line segment to the CDrawer at a known start point using a length and rotation angle
         /// </summary>
@@ -1147,6 +1162,20 @@ namespace GDIDrawer
             lock (m_llShapes)
                 m_llShapes.AddLast(new CPolygon(iXStart, iYStart, iVertexRadius, iNumPoints, dRotation, FillColor, iBorderThickness, BorderColor));
         }
+
+        /// <summary>
+        /// Add a solid Polygon the the CDrawer
+        /// </summary>
+        /// <param name="points">List of points that are the verticies of the polygon</param>
+        /// <param name="FillColor">Fill colour of the polygon</param>
+        /// <param name="iBorderThickness">Line thickness of outside border</param>
+        /// <param name="BorderColor">Colour of outside border</param>
+        public void AddSolidPolygon (List<PointF> points, Color? FillColor = null, int iBorderThickness = 0, Color? BorderColor = null)
+        {
+            lock (m_llShapes)
+                m_llShapes.AddLast(new CSolidPolygon(points, FillColor, iBorderThickness, BorderColor));
+        }
+
         ///////////////////////////////////////////////////////////////////////////////////////
         // Text Operations
         ///////////////////////////////////////////////////////////////////////////////////////
@@ -1226,7 +1255,7 @@ namespace GDIDrawer
 
         public abstract void Render(Graphics gr, int iScale);
     }
-
+        
     public abstract class CBoundingRectWithBorderShape : CShape
     {
         protected int m_iWidth;
@@ -1252,7 +1281,61 @@ namespace GDIDrawer
             m_BorderColor = BorderColor != null ? (Color)BorderColor : m_Color;
         }
     }
+        
+    public class CTransformedPath : CShape
+    {
+        protected GraphicsPath _Model = null;
+        protected float _Rot = 0;
 
+        public CTransformedPath (GraphicsPath gpModel, int iXStart, int iYStart, Color FillColor)
+            : base (iXStart, iYStart, FillColor)
+        {
+            _Model = gpModel;
+        }
+
+        public override void Render(Graphics gr, int iScale)
+        {
+            try
+            {
+                Matrix mat = new Matrix();
+                mat.Translate(m_iXStart, m_iYStart);
+                mat.Rotate(_Rot);
+                GraphicsPath copy = (GraphicsPath)(_Model.Clone());
+                copy.Transform(mat);
+                gr.FillPath(new SolidBrush(m_Color), _Model);
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("CTransformed Path : " + err.Message);
+            }
+        }
+    }
+
+    public class CSolidPolygon : CBoundingRectWithBorderShape
+    {
+        private List<PointF> _pts = null;
+
+        public CSolidPolygon (List<PointF> points, Color? FillColor = null, int iBorderThickness = 1, Color? BorderColor = null)
+            : base (0, 0, 0, 0, FillColor, iBorderThickness, BorderColor)
+        {
+            _pts = points;
+        }
+
+        public override void Render(Graphics gr, int iScale)
+        {
+            try
+            {
+                gr.FillPolygon(new SolidBrush(m_Color), _pts.ToArray());
+                if (m_iBorderThickness > 0)
+                    gr.DrawPolygon(new Pen(m_BorderColor, m_iBorderThickness), _pts.ToArray());
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine("Error in render polygon : " + err.Message);
+            }
+        }
+    }
+    
     ///////////////////////////////////////////////////////////////////////////////////////
     // rectangle class, for drawing simple rectangles
     ///////////////////////////////////////////////////////////////////////////////////////    
