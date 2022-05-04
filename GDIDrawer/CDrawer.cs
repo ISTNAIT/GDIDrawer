@@ -542,6 +542,11 @@ namespace GDIDrawer
         /// <param name="bRedundaMouse">Redunda-Mouse enabled</param>
         public CDrawer(int iWindowXSize = 800, int iWindowYSize = 600, bool bContinuousUpdate = true, bool bRedundaMouse = false, bool bLogging = false)
         {
+            // logging option (first)
+            LoggingOn = bLogging;
+
+            LocalLog("Starting up drawer...");
+
             // set window size, verify size
             m_ciWidth = iWindowXSize;
             m_ciHeight = iWindowYSize;
@@ -571,10 +576,17 @@ namespace GDIDrawer
             // Allow for potential 2nd Paint event to complete
             System.Threading.Thread.Sleep(100); 
             ContinuousUpdate = bContinuousUpdate;
+
+            LocalLog("Startup complete...");
         }
 
         public CDrawer(Bitmap Background, bool bContinuousUpdate = true, bool bRedundaMouse = false, bool bLogging = false)
         {
+            // logging option (first)
+            LoggingOn = bLogging;
+
+            LocalLog("Starting up drawer...");
+
             // not happy about re-create of ctor, but some things need to be in a certain order...
             if (Background == null)
                 throw new ArgumentException("Drawer background can't be null!");
@@ -611,6 +623,8 @@ namespace GDIDrawer
 
             // now stuff the image into the backbuffer
             m_wDrawer.SetBBImage(Background);
+
+            LocalLog("Startup complete...");
         }
 
         /// <summary>

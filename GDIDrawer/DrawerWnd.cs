@@ -107,7 +107,7 @@ namespace GDIDrawer
             FillBB(Color.Black);
 
             // show that drawer is up and running
-            CDrawer.LocalLog("Drawer Started...");            
+            CDrawer.LocalLog("Drawer window created...");            
         }
 
         //testing version

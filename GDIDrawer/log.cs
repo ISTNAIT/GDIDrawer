@@ -26,7 +26,7 @@ namespace GDIDrawer
                 _tLogThread.Start();
 
                 // show startup log message
-                WriteLine("----------------------------------------------------------------------");
+                //WriteLine("----------------------------------------------------------------------");
             }
             catch (Exception err)
             {
@@ -64,9 +64,11 @@ namespace GDIDrawer
                     // log it...
                     try
                     {
-                        StreamWriter sw = new StreamWriter(_FileName, true, Encoding.UTF8);
-                        sw.WriteLine(sLogItem);
-                        sw.Close();
+                        using (StreamWriter sw = new StreamWriter(_FileName, true, Encoding.UTF8))
+                        {
+                            sw.WriteLine(sLogItem);
+                            sw.Close();
+                        }
                     }
                     catch (Exception err)
                     {
